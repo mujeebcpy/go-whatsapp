@@ -544,6 +544,39 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 	}
 	return p
 }
+func Send_Link(title, text, url, description, to string, thumbnail []byte) {
+	text += "\n" + url
+	ts := uint64(time.Now().Unix())
+	status := proto.WebMessageInfo_PENDING
+	b := make([]byte, 10)
+	rand.Read(b)
+	Idsd := strings.ToUpper(hex.EncodeToString(b))
+	fromMe := true
+	revocation := &proto.WebMessageInfo{
+		Key: &proto.MessageKey{
+			FromMe:    &fromMe,
+			Id:        &Idsd,
+			RemoteJid: &to,
+		},
+		MessageTimestamp: &ts,
+		Message: &proto.Message{
+			ExtendedTextMessage: &proto.ExtendedTextMessage{
+				MatchedText:   &url,
+				CanonicalUrl:  &url,
+				Description:   &description,
+				Title:         &title,
+				Text:          &text,
+				JpegThumbnail: thumbnail,
+			},
+		},
+		Status: &status,
+	}
+
+	_, err := Was().Send(revocation)
+	fmt.Println(err)
+
+}
+
 
 /*
 Download is the function to retrieve media data. The media gets downloaded, validated and returned.
